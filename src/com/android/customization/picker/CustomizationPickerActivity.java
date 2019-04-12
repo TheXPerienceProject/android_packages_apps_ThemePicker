@@ -40,8 +40,10 @@ import com.android.customization.model.grid.GridOption;
 import com.android.customization.model.grid.GridOptionsManager;
 import com.android.customization.model.grid.LauncherGridOptionsProvider;
 import com.android.customization.model.theme.DefaultThemeProvider;
+import com.android.customization.model.theme.OverlayManagerCompat;
 import com.android.customization.model.theme.ThemeBundle;
 import com.android.customization.model.theme.ThemeManager;
+import com.android.customization.module.CustomizationInjector;
 import com.android.customization.picker.clock.ClockFragment;
 import com.android.customization.picker.clock.ClockFragment.ClockFragmentHost;
 import com.android.customization.picker.grid.GridFragment;
@@ -155,11 +157,13 @@ public class CustomizationPickerActivity extends FragmentActivity implements Wal
             return;
         }
         //Theme
-        Injector injector = InjectorProvider.getInjector();
+        CustomizationInjector injector = (CustomizationInjector) InjectorProvider.getInjector();
         mWallpaperSetter = new WallpaperSetter(injector.getWallpaperPersister(this),
                 injector.getPreferences(this), mUserEventLogger, false);
-        ThemeManager themeManager = new ThemeManager(new DefaultThemeProvider(this), this,
-                mWallpaperSetter);
+        ThemeManager themeManager = new ThemeManager(
+                new DefaultThemeProvider(this, injector.getCustomizationPreferences(this)),
+                this,
+                mWallpaperSetter, new OverlayManagerCompat(this));
         if (themeManager.isAvailable()) {
             mSections.put(R.id.nav_theme, new ThemeSection(R.id.nav_theme, themeManager));
         }
@@ -171,7 +175,8 @@ public class CustomizationPickerActivity extends FragmentActivity implements Wal
         }
         //Grid
         GridOptionsManager gridManager = new GridOptionsManager(
-                new LauncherGridOptionsProvider(this));
+                new LauncherGridOptionsProvider(this,
+                        getString(R.string.grid_control_metadata_name)));
         if (gridManager.isAvailable()) {
             mSections.put(R.id.nav_grid, new GridSection(R.id.nav_grid, gridManager));
         }
