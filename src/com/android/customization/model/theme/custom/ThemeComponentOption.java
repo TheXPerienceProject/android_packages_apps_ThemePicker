@@ -24,6 +24,7 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.Theme;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -102,6 +103,7 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
         public void bindThumbnailTile(View view) {
             ((TextView) view.findViewById(R.id.thumbnail_text)).setTypeface(
                     mHeadlineFont);
+            view.setContentDescription(mLabel);
         }
 
         @Override
@@ -153,6 +155,7 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
             icon.setTint(res.getColor(R.color.icon_thumbnail_color, null));
             ((ImageView) view.findViewById(R.id.option_icon)).setImageDrawable(
                     icon);
+            view.setContentDescription(mLabel);
         }
 
         @Override
@@ -178,7 +181,7 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
         @Override
         public void bindPreview(ViewGroup container) {
             TextView header = container.findViewById(R.id.theme_preview_card_header);
-            header.setText(mLabel);
+            header.setText(R.string.preview_name_icon);
             header.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_wifi_24px, 0, 0);
 
             ViewGroup cardBody = container.findViewById(R.id.theme_preview_card_body_container);
@@ -227,7 +230,8 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
          */
         private static int[] COLOR_BUTTON_IDS = {
                 R.id.preview_check_selected, R.id.preview_radio_selected,
-                R.id.preview_toggle_selected,
+                R.id.preview_toggle_selected, R.id.preview_check_unselected,
+                R.id.preview_radio_unselected, R.id.preview_toggle_unselected
         };
 
         @ColorInt private int mColorAccentLight;
@@ -243,9 +247,12 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
          */
         private Drawable mShapeDrawable;
 
-        ColorOption(String packageName, @ColorInt int lightColor,
+        private String mLabel;
+
+        ColorOption(String packageName, String label, @ColorInt int lightColor,
                 @ColorInt int darkColor) {
             addOverlayPackage(OVERLAY_CATEGORY_COLOR, packageName);
+            mLabel = label;
             mColorAccentLight = lightColor;
             mColorAccentDark = darkColor;
         }
@@ -254,6 +261,7 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
         public void bindThumbnailTile(View view) {
             int color = resolveColor(view.getResources());
             ((ImageView) view.findViewById(R.id.option_tile)).getDrawable().setTint(color);
+            view.setContentDescription(mLabel);
         }
 
         private int resolveColor(Resources res) {
@@ -285,15 +293,19 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
                 LayoutInflater.from(container.getContext()).inflate(
                         R.layout.preview_card_color_content, cardBody, true);
             }
-            @ColorInt int accentColor = resolveColor(container.getResources());
+            Resources res = container.getResources();
+            @ColorInt int accentColor = resolveColor(res);
+            @ColorInt int controlGreyColor = res.getColor(R.color.control_grey);
             ColorStateList tintList = new ColorStateList(
                     new int[][]{
                             new int[]{android.R.attr.state_selected},
-                            new int[]{android.R.attr.state_checked}
+                            new int[]{android.R.attr.state_checked},
+                            new int[]{-android.R.attr.state_enabled}
                     },
                     new int[] {
                             accentColor,
-                            accentColor
+                            accentColor,
+                            controlGreyColor
                     }
             );
 
@@ -302,9 +314,17 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
                 button.setButtonTintList(tintList);
             }
 
-            Switch toggle = container.findViewById(R.id.preview_toggle_selected);
-            toggle.setThumbTintList(tintList);
-            toggle.setTrackTintList(tintList);
+            Switch enabledSwitch = container.findViewById(R.id.preview_toggle_selected);
+            enabledSwitch.setThumbTintList(tintList);
+            enabledSwitch.setTrackTintList(tintList);
+
+            Switch disabledSwitch = container.findViewById(R.id.preview_toggle_unselected);
+            disabledSwitch.setThumbTintList(
+                ColorStateList.valueOf(res.getColor(R.color.switch_thumb_tint)));
+            disabledSwitch.setTrackTintList(
+                ColorStateList.valueOf(res.getColor(R.color.switch_track_tint)));
+            // Change overlay method so our color doesn't get too light/dark
+            disabledSwitch.setTrackTintMode(PorterDuff.Mode.OVERLAY);
 
             ColorStateList seekbarTintList = ColorStateList.valueOf(accentColor);
             SeekBar seekbar = container.findViewById(R.id.preview_seekbar);
@@ -341,13 +361,16 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
 
         private final LayerDrawable mShape;
         private final List<Drawable> mAppIcons;
+        private final String mLabel;
         private int[] mShapeIconIds = {
                 R.id.shape_preview_icon_0, R.id.shape_preview_icon_1, R.id.shape_preview_icon_2,
                 R.id.shape_preview_icon_3, R.id.shape_preview_icon_4, R.id.shape_preview_icon_5
         };
 
-        ShapeOption(String packageName, Drawable shapeDrawable, List<Drawable> appIcons) {
+        ShapeOption(String packageName, String label, Drawable shapeDrawable,
+                List<Drawable> appIcons) {
             addOverlayPackage(OVERLAY_CATEGORY_SHAPE, packageName);
+            mLabel = label;
             mAppIcons = appIcons;
             Drawable background = shapeDrawable.getConstantState().newDrawable();
             Drawable foreground = shapeDrawable.getConstantState().newDrawable();
@@ -361,7 +384,7 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
             ImageView thumb = view.findViewById(R.id.shape_thumbnail);
             Resources res = view.getResources();
             Theme theme = view.getContext().getTheme();
-            int borderWidth = res.getDimensionPixelSize(R.dimen.component_shape_border_width);
+            int borderWidth = 2 * res.getDimensionPixelSize(R.dimen.option_border_width);
 
             Drawable background = mShape.getDrawable(0);
             background.setTintList(res.getColorStateList(R.color.option_border_color, theme));
@@ -373,6 +396,7 @@ public abstract class ThemeComponentOption implements CustomizationOption<ThemeC
             foreground.setTint(res.getColor(R.color.shape_option_tile_foreground_color, theme));
 
             thumb.setImageDrawable(mShape);
+            view.setContentDescription(mLabel);
         }
 
         @Override
