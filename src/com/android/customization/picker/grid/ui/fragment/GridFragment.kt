@@ -22,11 +22,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Button
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
 import androidx.transition.Transition
 import androidx.transition.doOnStart
@@ -67,6 +70,14 @@ class GridFragment : AppbarFragment() {
                 container,
                 false,
             )
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updateLayoutParams<MarginLayoutParams> {
+                topMargin = insets.top
+                bottomMargin = insets.bottom
+            }
+            WindowInsetsCompat.CONSUMED
+        }
         setUpToolbar(view)
 
         // For nav bar edge-to-edge effect.
@@ -127,7 +138,7 @@ class GridFragment : AppbarFragment() {
                                     context,
                                     getString(
                                         R.string.toast_of_changing_grid,
-                                        gridInteractor.getSelectOptionNonSuspend()?.title
+                                        gridInteractor.getSelectOptionStateFlow().value?.title
                                     ),
                                     Toast.LENGTH_SHORT
                                 )
@@ -140,7 +151,7 @@ class GridFragment : AppbarFragment() {
                             val errorMsg =
                                 getString(
                                     R.string.toast_of_failure_to_change_grid,
-                                    gridInteractor.getSelectOptionNonSuspend()?.title
+                                    gridInteractor.getSelectOptionStateFlow().value?.title
                                 )
                             Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
                             Log.e(TAG, errorMsg, throwable)
@@ -190,7 +201,10 @@ class GridFragment : AppbarFragment() {
                         ),
                     initialExtrasProvider = {
                         val bundle = Bundle()
-                        bundle.putString("name", gridInteractor.getSelectOptionNonSuspend()?.name)
+                        bundle.putString(
+                            "name",
+                            gridInteractor.getSelectOptionStateFlow().value?.name
+                        )
                         bundle
                     },
                     wallpaperInfoProvider = {
