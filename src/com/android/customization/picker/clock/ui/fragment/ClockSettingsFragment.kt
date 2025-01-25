@@ -75,17 +75,6 @@ class ClockSettingsFragment : AppbarFragment() {
         }
         setUpToolbar(view)
 
-        // For nav bar edge-to-edge effect.
-        view.setOnApplyWindowInsetsListener { v: View, windowInsets: WindowInsets ->
-            v.setPadding(
-                v.paddingLeft,
-                v.paddingTop,
-                v.paddingRight,
-                windowInsets.systemWindowInsetBottom
-            )
-            windowInsets
-        }
-
         val context = requireContext()
         val activity = requireActivity()
         val injector = InjectorProvider.getInjector() as ThemePickerInjector

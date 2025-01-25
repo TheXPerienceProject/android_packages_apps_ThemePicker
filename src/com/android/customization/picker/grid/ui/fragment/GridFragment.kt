@@ -80,17 +80,6 @@ class GridFragment : AppbarFragment() {
         }
         setUpToolbar(view)
 
-        // For nav bar edge-to-edge effect.
-        view.setOnApplyWindowInsetsListener { v: View, windowInsets: WindowInsets ->
-            v.setPadding(
-                v.paddingLeft,
-                v.paddingTop,
-                v.paddingRight,
-                windowInsets.systemWindowInsetBottom
-            )
-            windowInsets
-        }
-
         val isGridApplyButtonEnabled = BaseFlags.get().isGridApplyButtonEnabled(requireContext())
 
         val injector = InjectorProvider.getInjector() as ThemePickerInjector

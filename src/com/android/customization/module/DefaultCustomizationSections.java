@@ -233,9 +233,8 @@ public final class DefaultCustomizationSections implements CustomizationSections
                         new GridSectionController(
                                 GridOptionsManager.getInstance(activity),
                                 sectionNavigationController,
-<<<<<<< HEAD
-                                lifecycleOwner,
-                                /* isRevampedUiEnabled= */ true));
+                                lifecycleOwner));
+//                                /* isRevampedUiEnabled= */ true));
 
                 // Icon pack selection section.
                 sectionControllers.add(new IconPackSectionController(
@@ -246,9 +245,6 @@ public final class DefaultCustomizationSections implements CustomizationSections
                 sectionControllers.add(new FontSectionController(
                         FontManager.getInstance(activity, new OverlayManagerCompat(activity)),
                         sectionNavigationController));
-=======
-                                lifecycleOwner));
->>>>>>> android-15.0.0_r6
                 break;
         }
 
